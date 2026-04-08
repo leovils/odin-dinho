@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cap 1 — Materiais Interativos | O Grimorio Estatistico de Odin Dinho</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Patrick+Hand&family=Permanent+Marker&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:linear-gradient(180deg,#0d1117,#1a1a2e 40%,#16213e);font-family:'Patrick Hand',cursive;color:#ddd;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:30px 20px}
+
+  .capa{text-align:center;margin-bottom:36px}
+  .capa h1{font-family:'Permanent Marker',cursive;color:#f5c518;font-size:2.6em;text-shadow:3px 3px 0 #922B21,5px 5px 8px rgba(0,0,0,.6);line-height:1.15}
+  .capa .sub{color:#8899aa;font-size:1.2em;margin-top:8px}
+  .capa .cap{font-family:'Bangers',cursive;color:#5dade2;font-size:1.4em;letter-spacing:2px;margin-top:14px;padding:6px 24px;border:2px solid #1B4F72;border-radius:30px;display:inline-block}
+
+  .rune-bar{width:100%;max-width:800px;height:5px;background:linear-gradient(90deg,#1B4F72,#f5c518,#922B21,#4A235A,#1B4F72);border-radius:3px;margin:10px 0 30px}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;max-width:800px;width:100%}
+
+  .card{background:linear-gradient(145deg,#1c2a3a,#162230);border:3px solid #1B4F72;border-radius:16px;padding:24px;transition:transform .2s,box-shadow .2s;cursor:pointer;text-decoration:none;display:block;position:relative;overflow:hidden}
+  .card:hover{transform:translateY(-4px);box-shadow:0 8px 30px rgba(27,79,114,.4);border-color:#f5c518}
+  .card::before{content:'';position:absolute;top:0;left:0;width:6px;height:100%;border-radius:3px 0 0 3px}
+
+  .card.tirinha::before{background:#f5c518}
+  .card.widget-blue::before{background:#2980b9}
+  .card.widget-red::before{background:#922B21}
+  .card.widget-purple::before{background:#7d3c98}
+
+  .card .icon{font-size:2.2em;margin-bottom:10px}
+  .card .titulo{font-family:'Permanent Marker',cursive;color:#f5c518;font-size:1.35em;margin-bottom:6px}
+  .card .desc{color:#aab;font-size:1.05em;line-height:1.4;margin-bottom:12px}
+  .card .tag{display:inline-block;font-family:'Bangers',cursive;font-size:.85em;padding:3px 12px;border-radius:20px;letter-spacing:1px}
+  .card .tag.comic{background:#f5c518;color:#1a1a2e}
+  .card .tag.game{background:#27ae60;color:#fff}
+  .card .tag.sim{background:#2980b9;color:#fff}
+  .card .tag.quiz{background:#7d3c98;color:#fff}
+
+  .footer{margin-top:40px;text-align:center;color:#556;font-size:.9em;max-width:600px}
+  .footer .gold{color:#f5c518;font-family:'Permanent Marker',cursive}
+  .footer .prof{margin-top:8px;color:#778;font-size:.95em}
+
+  .muninn-box{background:linear-gradient(135deg,#2d1b4e,#1a1035);border:2px solid #7d3c98;border-left:6px solid #7d3c98;border-radius:10px;padding:14px 18px;max-width:800px;width:100%;margin-bottom:28px}
+  .muninn-box .lbl{font-family:'Bangers',cursive;color:#bb8fce;font-size:1em;margin-bottom:4px}
+  .muninn-box p{color:#d7bde2;font-size:1em;line-height:1.45}
+</style>
+</head>
+<body>
+
+<div class="capa">
+  <h1>O Grimorio Estatistico<br>de Odin Dinho</h1>
+  <div class="sub">Materiais Interativos do E-Book</div>
+  <div class="cap">CAPITULO 1 — PESQUISA QUANTITATIVA</div>
+</div>
+
+<div class="rune-bar"></div>
+
+<div class="muninn-box">
+  <div class="lbl">MUNINN LEMBRA:</div>
+  <p>Estes materiais complementam o Capitulo 1 do e-book. Cada widget e interativo — explore, erre, aprenda. ThorMento quer que voce pule direto para os dados. Odin Dinho insiste: entenda o processo primeiro.</p>
+</div>
+
+<div class="grid">
+
+  <a href="tirinha-funkos.html" class="card tirinha">
+    <div class="icon">🎬</div>
+    <div class="titulo">Tirinha dos Funkos</div>
+    <div class="desc">Quadrinho em 5 paineis: ThorMento quer atalhos, Odin Dinho e os corvos ensinam o caminho certo. Resumo visual do capitulo.</div>
+    <span class="tag comic">QUADRINHO</span>
+  </a>
+
+  <a href="classificador-variaveis.html" class="card widget-blue">
+    <div class="icon">🎯</div>
+    <div class="titulo">Classificador de Variaveis</div>
+    <div class="desc">10 variaveis do universo viking. Classifique cada uma em NOIR (Nominal, Ordinal, Intervalar, Razao) + Discreta ou Continua. Gamificado com pontuacao.</div>
+    <span class="tag game">JOGO</span>
+  </a>
+
+  <a href="vies-amostral.html" class="card widget-red">
+    <div class="icon">🗺️</div>
+    <div class="titulo">Simulador de Vies Amostral</div>
+    <div class="desc">Mapa de populacao com 5 aldeias. Compare amostragem por conveniencia (so da taverna) vs. aleatoria. Veja o vies em tempo real.</div>
+    <span class="tag sim">SIMULADOR</span>
+  </a>
+
+  <a href="quiz-ciclo-pesquisa.html" class="card widget-purple">
+    <div class="icon">🔮</div>
+    <div class="titulo">Quiz: Ciclo da Pesquisa</div>
+    <div class="desc">Parte 1: ordene as 6 etapas do ciclo. Parte 2: identifique HARKing em 8 cenarios — legitimo ou armadilha de ThorMento?</div>
+    <span class="tag quiz">QUIZ</span>
+  </a>
+
+</div>
+
+<div class="rune-bar" style="margin-top:36px"></div>
+
+<div class="footer">
+  <span class="gold">O Maravilhoso Livro de Receitas Estatisticas de Odin Dinho</span>
+  <div class="prof">Prof. Dr. Leonardo Vils — Mestrado e Doutorado MTPQI</div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de Viés Amostral — Cap 1 | Odin Dinho</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Patrick+Hand&family=Permanent+Marker&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:linear-gradient(180deg,#0d1117,#1a1a2e 40%,#16213e);font-family:'Patrick Hand',cursive;color:#ddd;min-height:100vh;padding:20px}
+  .header{text-align:center;margin-bottom:18px}
+  .header h1{font-family:'Permanent Marker',cursive;color:#f5c518;font-size:2em;text-shadow:3px 3px 0 #922B21,5px 5px 8px rgba(0,0,0,.6)}
+  .header .sub{color:#8899aa;font-size:1.05em;margin-top:4px}
+  .huginn-box{background:linear-gradient(135deg,#2d1b4e,#1a1035);border:2px solid #7d3c98;border-left:6px solid #7d3c98;border-radius:10px;padding:14px 18px;margin:0 auto 22px;max-width:920px}
+  .huginn-box .lbl{font-family:'Bangers',cursive;color:#bb8fce;font-size:1.05em;margin-bottom:4px}
+  .huginn-box p{color:#d7bde2;font-size:1em;line-height:1.45}
+  .bold-p{color:#e8daef;font-weight:bold}
+  .container{max-width:920px;margin:0 auto}
+
+  .controls{background:linear-gradient(145deg,#1c2a3a,#162230);border:2px solid #1B4F72;border-radius:12px;padding:18px 22px;margin-bottom:18px;display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end}
+  .control-group{display:flex;flex-direction:column;gap:4px}
+  .control-group label{font-family:'Bangers',cursive;color:#5dade2;font-size:.9em;letter-spacing:1px}
+  .control-group select,.control-group input[type="range"]{background:#0d1117;color:#ddd;border:1px solid #1B4F72;border-radius:6px;padding:6px 10px;font-family:'Patrick Hand',cursive;font-size:1em}
+  .control-group input[type="range"]{width:140px;accent-color:#f5c518}
+  .control-group .vd{color:#f5c518;font-family:'Bangers',cursive;font-size:1.05em;text-align:center}
+  .btn{font-family:'Bangers',cursive;font-size:1.1em;padding:9px 22px;border:none;border-radius:8px;cursor:pointer;letter-spacing:1.5px;transition:transform .1s}
+  .btn:hover{transform:scale(1.04)}
+  .btn-run{background:linear-gradient(135deg,#1B4F72,#2980b9);color:#f5c518}
+  .btn-clear{background:#555;color:#ddd}
+
+  .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+  @media(max-width:700px){.charts-row{grid-template-columns:1fr}}
+  .chart-box{background:linear-gradient(145deg,#fdf6e3,#f5f0dc);border:3px solid #2c2c2c;border-radius:12px;padding:12px}
+  .chart-box .ct{font-family:'Bangers',cursive;color:#1B4F72;font-size:1.05em;text-align:center;margin-bottom:6px}
+  .chart-box canvas{width:100%;height:240px}
+
+  .pop-map{background:linear-gradient(145deg,#fdf6e3,#f5f0dc);border:3px solid #2c2c2c;border-radius:12px;padding:16px;margin-bottom:18px}
+  .pop-map .ct{font-family:'Bangers',cursive;color:#1B4F72;font-size:1.1em;text-align:center;margin-bottom:8px}
+  .pop-map canvas{width:100%;height:320px}
+
+  .stats-panel{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:18px}
+  .stat-card{background:linear-gradient(145deg,#1c2a3a,#162230);border:2px solid #1B4F72;border-radius:10px;padding:12px;text-align:center}
+  .stat-card.danger{border-color:#922B21}
+  .stat-card .sl{font-family:'Bangers',cursive;color:#5dade2;font-size:.8em;letter-spacing:1px}
+  .stat-card.danger .sl{color:#e74c3c}
+  .stat-card .sv{font-family:'Permanent Marker',cursive;color:#f5c518;font-size:1.3em}
+  .stat-card.danger .sv{color:#e74c3c}
+
+  .odin-box{background:linear-gradient(135deg,#0e2a3f,#0a1f30);border:2px solid #2980b9;border-left:6px solid #2980b9;border-radius:10px;padding:14px 18px;margin:0 auto 14px;max-width:920px;display:none}
+  .odin-box.show{display:block}
+  .odin-box .ol{font-family:'Bangers',cursive;color:#5dade2;font-size:1.05em;margin-bottom:4px}
+  .odin-box p{color:#d4e6f1;font-size:1em;line-height:1.45}
+
+  .thor-box{background:linear-gradient(135deg,#3b1515,#2a0e0e);border:2px solid #e74c3c;border-left:6px solid #e74c3c;border-radius:10px;padding:14px 18px;margin:0 auto 14px;max-width:920px;display:none}
+  .thor-box.show{display:block}
+  .thor-box .tl{font-family:'Bangers',cursive;color:#e74c3c;font-size:1.05em;margin-bottom:4px}
+  .thor-box p{color:#fadbd8;font-size:1em;line-height:1.45}
+
+  .rune-bar{height:5px;background:linear-gradient(90deg,#1B4F72,#f5c518,#922B21,#4A235A,#1B4F72);border-radius:3px;margin:20px 0}
+  .footer{text-align:center;margin-top:20px;color:#556;font-size:.88em}
+  .footer .gold{color:#f5c518;font-family:'Permanent Marker',cursive}
+  .legend{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:6px}
+  .legend-item{display:flex;align-items:center;gap:5px;font-size:.9em;color:#555}
+  .legend-dot{width:12px;height:12px;border-radius:50%}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>SIMULADOR DE VIÉS AMOSTRAL</h1>
+  <div class="sub">Widget Interativo — Capítulo 1: Populações, Amostras e a Ilusão do "N Grande"</div>
+</div>
+
+<div class="huginn-box">
+  <div class="lbl">🪶 HUGINN PROVOCA:</div>
+  <p>"ThorMento perguntou a 3 guerreiros na taverna e concluiu que 100% do mundo ama hidromel. Isso é <span class="bold-p">amostragem por conveniência</span>. Veja o que acontece quando você compara amostras enviesadas com amostras aleatórias da mesma população. O tamanho da amostra não salva quem amostra errado."</p>
+</div>
+
+<div class="container">
+  <div class="controls">
+    <div class="control-group">
+      <label>CENÁRIO</label>
+      <select id="scenario">
+        <option value="hidromel">Preferência por hidromel (aldeias)</option>
+        <option value="colheita">Produção de cevada (reinos)</option>
+        <option value="espadas">Qualidade de espadas (forjas)</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label>TAMANHO DA AMOSTRA</label>
+      <input type="range" id="sampleN" min="5" max="200" value="30" step="5">
+      <div class="vd" id="sampleNVal">30</div>
+    </div>
+    <div class="control-group">
+      <label>REPETIÇÕES</label>
+      <select id="nReps">
+        <option value="50">50</option>
+        <option value="100" selected>100</option>
+        <option value="500">500</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-run" onclick="runSim()">⚔️ SIMULAR</button>
+      <button class="btn btn-clear" onclick="clearAll()">🔨 LIMPAR</button>
+    </div>
+  </div>
+
+  <!-- Population map -->
+  <div class="pop-map">
+    <div class="ct">MAPA DA POPULAÇÃO (cada ponto é um indivíduo)</div>
+    <canvas id="mapCanvas"></canvas>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#aab"></div>População</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div>Amostra Conveniência</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#27ae60"></div>Amostra Aleatória</div>
+    </div>
+  </div>
+
+  <!-- Histograms -->
+  <div class="charts-row">
+    <div class="chart-box">
+      <div class="ct">AMOSTRA POR CONVENIÊNCIA (taverna)</div>
+      <canvas id="convCanvas"></canvas>
+    </div>
+    <div class="chart-box">
+      <div class="ct">AMOSTRA ALEATÓRIA</div>
+      <canvas id="randCanvas"></canvas>
+    </div>
+  </div>
+
+  <div class="stats-panel">
+    <div class="stat-card"><div class="sl">μ POPULAÇÃO</div><div class="sv" id="sMuPop">—</div></div>
+    <div class="stat-card danger"><div class="sl">MÉDIA CONVENIÊNCIA</div><div class="sv" id="sMuConv">—</div></div>
+    <div class="stat-card"><div class="sl">MÉDIA ALEATÓRIA</div><div class="sv" id="sMuRand">—</div></div>
+    <div class="stat-card danger"><div class="sl">VIÉS (CONVENIÊNCIA)</div><div class="sv" id="sBiasConv">—</div></div>
+    <div class="stat-card"><div class="sl">VIÉS (ALEATÓRIA)</div><div class="sv" id="sBiasRand">—</div></div>
+  </div>
+
+  <div class="rune-bar"></div>
+
+  <div class="thor-box" id="thorBox">
+    <div class="tl">🔨 THORMENTO DIZ:</div>
+    <p id="thorText"></p>
+  </div>
+  <div class="odin-box" id="odinBox">
+    <div class="ol">🛡️ ODIN DINHO RESPONDE:</div>
+    <p id="odinText"></p>
+  </div>
+</div>
+
+<div class="footer"><span class="gold">O Grimório Estatístico de Odin Dinho</span> — Prof. Dr. Leonardo Vils — Cap. 1</div>
+
+<script>
+document.getElementById('sampleN').addEventListener('input',e=>{document.getElementById('sampleNVal').textContent=e.target.value});
+
+function randn(){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+
+// Population generator with clusters
+function generatePopulation(scenario) {
+  const pop = [];
+  const N = 500;
+  if (scenario === 'hidromel') {
+    // 5 clusters (aldeias), some love hidromel, some don't
+    const clusters = [
+      { cx: .15, cy: .2, n: 80, mean: 8, sd: 1, label: 'Taverna (alto)' },
+      { cx: .8, cy: .15, n: 100, mean: 5, sd: 1.5, label: 'Aldeia do campo' },
+      { cx: .5, cy: .5, n: 120, mean: 4, sd: 2, label: 'Aldeia central' },
+      { cx: .2, cy: .8, n: 100, mean: 3, sd: 1.5, label: 'Aldeia do rio' },
+      { cx: .85, cy: .75, n: 100, mean: 6, sd: 1.2, label: 'Porto de Birka' },
+    ];
+    clusters.forEach(c => {
+      for(let i=0;i<c.n;i++){
+        const x = c.cx + (Math.random()-.5)*.2;
+        const y = c.cy + (Math.random()-.5)*.2;
+        const val = Math.max(1,Math.min(10, c.mean + randn()*c.sd));
+        pop.push({ x: Math.max(0,Math.min(1,x)), y: Math.max(0,Math.min(1,y)), val, cluster: c.label, isTavern: c.label.includes('Taverna') });
+      }
+    });
+  } else if (scenario === 'colheita') {
+    const clusters = [
+      { cx: .2, cy: .3, n: 100, mean: 120, sd: 20, label: 'Fértil' },
+      { cx: .7, cy: .2, n: 100, mean: 60, sd: 15, label: 'Árido' },
+      { cx: .5, cy: .6, n: 100, mean: 90, sd: 25, label: 'Médio' },
+      { cx: .15, cy: .8, n: 100, mean: 140, sd: 10, label: 'Rica (perto do Jarl)', isTavern: true },
+      { cx: .85, cy: .7, n: 100, mean: 70, sd: 20, label: 'Montanha' },
+    ];
+    clusters.forEach(c => {
+      for(let i=0;i<c.n;i++){
+        const x = c.cx + (Math.random()-.5)*.2;
+        const y = c.cy + (Math.random()-.5)*.2;
+        const val = Math.max(0, c.mean + randn()*c.sd);
+        pop.push({ x: Math.max(0,Math.min(1,x)), y: Math.max(0,Math.min(1,y)), val, cluster: c.label, isTavern: !!c.isTavern });
+      }
+    });
+  } else {
+    const clusters = [
+      { cx: .3, cy: .25, n: 100, mean: 85, sd: 5, label: 'Forja Elite', isTavern: true },
+      { cx: .7, cy: .3, n: 120, mean: 55, sd: 15, label: 'Forja Comum' },
+      { cx: .5, cy: .7, n: 130, mean: 65, sd: 12, label: 'Forja Média' },
+      { cx: .15, cy: .75, n: 80, mean: 40, sd: 10, label: 'Aprendiz' },
+      { cx: .85, cy: .8, n: 70, mean: 70, sd: 8, label: 'Forja Nórdica' },
+    ];
+    clusters.forEach(c => {
+      for(let i=0;i<c.n;i++){
+        const x = c.cx + (Math.random()-.5)*.2;
+        const y = c.cy + (Math.random()-.5)*.2;
+        const val = Math.max(0, c.mean + randn()*c.sd);
+        pop.push({ x: Math.max(0,Math.min(1,x)), y: Math.max(0,Math.min(1,y)), val, cluster: c.label, isTavern: !!c.isTavern });
+      }
+    });
+  }
+  return pop;
+}
+
+function runSim() {
+  const scenario = document.getElementById('scenario').value;
+  const n = parseInt(document.getElementById('sampleN').value);
+  const nReps = parseInt(document.getElementById('nReps').value);
+
+  const pop = generatePopulation(scenario);
+  const popMean = pop.reduce((a,p)=>a+p.val,0)/pop.length;
+
+  // Convenience sample: only from "tavern" cluster
+  const tavernPop = pop.filter(p => p.isTavern);
+  const otherPop = pop.filter(p => !p.isTavern);
+
+  // Run repeated samples
+  const convMeans = [], randMeans = [];
+  for(let r=0;r<nReps;r++) {
+    // Convenience: sample from tavern cluster (with replacement if needed)
+    const convSample = [];
+    for(let i=0;i<n;i++) convSample.push(tavernPop[Math.floor(Math.random()*tavernPop.length)]);
+    convMeans.push(convSample.reduce((a,p)=>a+p.val,0)/n);
+
+    // Random: sample from entire population
+    const randSample = [];
+    for(let i=0;i<n;i++) randSample.push(pop[Math.floor(Math.random()*pop.length)]);
+    randMeans.push(randSample.reduce((a,p)=>a+p.val,0)/n);
+  }
+
+  const convGrandMean = convMeans.reduce((a,b)=>a+b,0)/convMeans.length;
+  const randGrandMean = randMeans.reduce((a,b)=>a+b,0)/randMeans.length;
+
+  // One sample for map display
+  const convShow = []; for(let i=0;i<Math.min(n,tavernPop.length);i++) convShow.push(tavernPop[Math.floor(Math.random()*tavernPop.length)]);
+  const randShow = []; const shuffled = [...pop].sort(()=>Math.random()-.5); for(let i=0;i<n;i++) randShow.push(shuffled[i]);
+
+  // Stats
+  document.getElementById('sMuPop').textContent = popMean.toFixed(2);
+  document.getElementById('sMuConv').textContent = convGrandMean.toFixed(2);
+  document.getElementById('sMuRand').textContent = randGrandMean.toFixed(2);
+  document.getElementById('sBiasConv').textContent = (convGrandMean - popMean).toFixed(2);
+  document.getElementById('sBiasRand').textContent = (randGrandMean - popMean).toFixed(2);
+
+  drawMap(pop, convShow, randShow);
+  drawHist('convCanvas', convMeans, '#e74c3c', '#fadbd8', popMean, 'Conveniência');
+  drawHist('randCanvas', randMeans, '#27ae60', '#d5f5e3', popMean, 'Aleatória');
+  showDialogue(popMean, convGrandMean, randGrandMean, n);
+}
+
+function drawMap(pop, conv, rand) {
+  const c = document.getElementById('mapCanvas');
+  const ctx = c.getContext('2d');
+  const dpr = window.devicePixelRatio||1;
+  const rect = c.getBoundingClientRect();
+  c.width=rect.width*dpr; c.height=320*dpr; ctx.scale(dpr,dpr);
+  const W=rect.width, H=320;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#fdf6e3'; ctx.fillRect(0,0,W,H);
+
+  const m={l:20,r:20,t:10,b:10}, pW=W-m.l-m.r, pH=H-m.t-m.b;
+
+  // All population dots
+  pop.forEach(p=>{
+    ctx.beginPath();
+    ctx.arc(m.l+p.x*pW, m.t+p.y*pH, 3, 0, Math.PI*2);
+    ctx.fillStyle='rgba(170,180,190,0.4)';
+    ctx.fill();
+  });
+
+  // Convenience sample
+  conv.forEach(p=>{
+    ctx.beginPath();
+    ctx.arc(m.l+p.x*pW, m.t+p.y*pH, 5, 0, Math.PI*2);
+    ctx.fillStyle='#e74c3c';
+    ctx.fill();
+    ctx.strokeStyle='#922B21'; ctx.lineWidth=1; ctx.stroke();
+  });
+
+  // Random sample
+  rand.forEach(p=>{
+    ctx.beginPath();
+    ctx.arc(m.l+p.x*pW, m.t+p.y*pH, 5, 0, Math.PI*2);
+    ctx.fillStyle='#27ae60';
+    ctx.fill();
+    ctx.strokeStyle='#1e8449'; ctx.lineWidth=1; ctx.stroke();
+  });
+}
+
+function drawHist(canvasId, data, color, fill, popMean) {
+  const c = document.getElementById(canvasId);
+  const ctx = c.getContext('2d');
+  const dpr = window.devicePixelRatio||1;
+  const rect = c.getBoundingClientRect();
+  c.width=rect.width*dpr; c.height=240*dpr; ctx.scale(dpr,dpr);
+  const W=rect.width, H=240;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#fdf6e3'; ctx.fillRect(0,0,W,H);
+
+  const margin={l:40,r:15,t:10,b:30}, pW=W-margin.l-margin.r, pH=H-margin.t-margin.b;
+  const min=Math.min(...data,popMean), max=Math.max(...data,popMean);
+  const range=max-min||1;
+  const nBins=25;
+  const binW=(range*1.1)/nBins;
+  const start=min-.05*range;
+  const bins=new Array(nBins).fill(0);
+  data.forEach(v=>{const b=Math.min(Math.floor((v-start)/binW),nBins-1);if(b>=0)bins[b]++});
+  const maxC=Math.max(...bins,1);
+  const bW=pW/nBins;
+
+  bins.forEach((count,i)=>{
+    const barH=(count/maxC)*pH;
+    ctx.fillStyle=fill;
+    ctx.fillRect(margin.l+i*bW, margin.t+pH-barH, bW-1, barH);
+    ctx.strokeStyle=color; ctx.lineWidth=.5;
+    ctx.strokeRect(margin.l+i*bW, margin.t+pH-barH, bW-1, barH);
+  });
+
+  // Population mean line
+  const mx=margin.l+((popMean-start)/(binW*nBins))*pW;
+  ctx.strokeStyle='#1B4F72'; ctx.lineWidth=2.5; ctx.setLineDash([6,3]);
+  ctx.beginPath(); ctx.moveTo(mx,margin.t); ctx.lineTo(mx,margin.t+pH); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#1B4F72'; ctx.font="bold 11px 'Bangers',cursive"; ctx.textAlign='center';
+  ctx.fillText('μ pop',mx,margin.t+pH+14);
+
+  // Mean of means
+  const grandMean=data.reduce((a,b)=>a+b,0)/data.length;
+  const gmx=margin.l+((grandMean-start)/(binW*nBins))*pW;
+  ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(gmx,margin.t); ctx.lineTo(gmx,margin.t+pH); ctx.stroke();
+  ctx.fillStyle=color; ctx.fillText('x̄',gmx,margin.t+pH+26);
+
+  // Axis
+  ctx.strokeStyle='#333'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(margin.l,margin.t+pH); ctx.lineTo(margin.l+pW,margin.t+pH); ctx.stroke();
+}
+
+function showDialogue(popMean, convMean, randMean, n) {
+  const bias = Math.abs(convMean - popMean);
+  const randBias = Math.abs(randMean - popMean);
+
+  document.getElementById('thorBox').classList.add('show');
+  document.getElementById('odinBox').classList.add('show');
+
+  document.getElementById('thorText').innerHTML = `"Eu perguntei para ${n} guerreiros <em>escolhidos a dedo</em> e a média deu ${convMean.toFixed(2)}. Tá vendo? Amostra grande, resultado claro. Quem precisa de sorteio?"`;
+
+  let odinMsg = `"O viés da amostra por conveniência é de <strong>${bias.toFixed(2)}</strong> — sistematicamente afastado da realidade (μ = ${popMean.toFixed(2)}). `;
+  if (bias > randBias * 2) {
+    odinMsg += `A amostra aleatória erra <strong>${randBias.toFixed(2)}</strong> — muito menos. Amostra enviesada com n = ${n} é pior que amostra aleatória com n = 10. Representatividade vence tamanho."`;
+  } else {
+    odinMsg += `A aleatória erra ${randBias.toFixed(2)}. Mesmo quando a diferença é pequena, o problema é que o viés de conveniência é <strong>sistemático</strong> — ele não desaparece aumentando n. É um erro de direção, não de precisão."`;
+  }
+  document.getElementById('odinText').innerHTML = odinMsg;
+}
+
+function clearAll() {
+  ['mapCanvas','convCanvas','randCanvas'].forEach(id=>{const c=document.getElementById(id);c.getContext('2d').clearRect(0,0,c.width,c.height)});
+  ['sMuPop','sMuConv','sMuRand','sBiasConv','sBiasRand'].forEach(id=>{document.getElementById(id).textContent='—'});
+  document.getElementById('thorBox').classList.remove('show');
+  document.getElementById('odinBox').classList.remove('show');
+}
+</script>
+
+</body>
+</html>

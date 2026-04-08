@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz do Ciclo da Pesquisa — Cap 1 | Odin Dinho</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Patrick+Hand&family=Permanent+Marker&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:linear-gradient(180deg,#0d1117,#1a1a2e 40%,#16213e);font-family:'Patrick Hand',cursive;color:#ddd;min-height:100vh;padding:20px}
+  .header{text-align:center;margin-bottom:18px}
+  .header h1{font-family:'Permanent Marker',cursive;color:#f5c518;font-size:2.1em;text-shadow:3px 3px 0 #922B21,5px 5px 8px rgba(0,0,0,.6)}
+  .header .sub{color:#8899aa;font-size:1.05em;margin-top:4px}
+  .huginn-box{background:linear-gradient(135deg,#2d1b4e,#1a1035);border:2px solid #7d3c98;border-left:6px solid #7d3c98;border-radius:10px;padding:14px 18px;margin:0 auto 22px;max-width:860px}
+  .huginn-box .lbl{font-family:'Bangers',cursive;color:#bb8fce;font-size:1.05em;margin-bottom:4px}
+  .huginn-box p{color:#d7bde2;font-size:1em;line-height:1.45}
+  .bold-p{color:#e8daef;font-weight:bold}
+  .container{max-width:860px;margin:0 auto}
+
+  /* PART 1: Ordering */
+  .section-title{font-family:'Bangers',cursive;color:#f5c518;font-size:1.3em;letter-spacing:1.5px;margin-bottom:12px;text-align:center}
+
+  .order-area{background:linear-gradient(145deg,#1c2a3a,#162230);border:2px solid #1B4F72;border-radius:12px;padding:20px;margin-bottom:20px}
+  .order-list{list-style:none;max-width:500px;margin:0 auto}
+  .order-item{background:linear-gradient(145deg,#fdf6e3,#f5f0dc);border:3px solid #2c2c2c;border-radius:10px;padding:14px 18px;margin-bottom:8px;cursor:grab;display:flex;align-items:center;gap:12px;transition:transform .15s,box-shadow .15s;user-select:none}
+  .order-item:active{cursor:grabbing;transform:scale(1.03);box-shadow:0 4px 16px rgba(0,0,0,.4)}
+  .order-item.dragging{opacity:.4}
+  .order-item.over{border-color:#f5c518;border-width:3px}
+  .order-num{font-family:'Bangers',cursive;color:#922B21;font-size:1.4em;min-width:28px;text-align:center}
+  .order-text{font-family:'Patrick Hand',cursive;color:#333;font-size:1.1em;flex:1}
+  .order-icon{font-size:1.3em}
+
+  .btn{font-family:'Bangers',cursive;font-size:1.1em;padding:9px 22px;border:none;border-radius:8px;cursor:pointer;letter-spacing:1.5px;transition:transform .1s}
+  .btn:hover{transform:scale(1.04)}
+  .btn-check{background:linear-gradient(135deg,#1B4F72,#2980b9);color:#f5c518;display:block;margin:14px auto 0}
+  .btn-reset{background:#555;color:#ddd}
+  .btn-next{background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff}
+
+  /* Feedback */
+  .order-feedback{margin-top:14px;padding:14px 18px;border-radius:10px;display:none;max-width:500px;margin-left:auto;margin-right:auto}
+  .order-feedback.correct{display:block;background:linear-gradient(135deg,#0e2a3f,#0a1f30);border:2px solid #27ae60;border-left:6px solid #27ae60}
+  .order-feedback.wrong{display:block;background:linear-gradient(135deg,#3b1515,#2a0e0e);border:2px solid #e74c3c;border-left:6px solid #e74c3c}
+  .order-feedback .fb-lbl{font-family:'Bangers',cursive;font-size:1.05em;margin-bottom:4px}
+  .order-feedback.correct .fb-lbl{color:#27ae60}
+  .order-feedback.wrong .fb-lbl{color:#e74c3c}
+  .order-feedback p{color:#ccc;font-size:1em;line-height:1.4}
+
+  /* PART 2: HARKing scenarios */
+  .scenario-card{background:linear-gradient(145deg,#fdf6e3,#f5f0dc);border:4px solid #2c2c2c;border-radius:14px;padding:24px;margin-bottom:14px;position:relative}
+  .scenario-card .s-num{position:absolute;top:10px;left:14px;font-family:'Bangers',cursive;font-size:1.4em;color:#922B21;opacity:.35}
+  .scenario-card .s-text{color:#333;font-size:1.05em;line-height:1.45;margin-bottom:14px;padding-left:30px}
+  .scenario-btns{display:flex;gap:10px;justify-content:center}
+  .s-btn{padding:10px 24px;border-radius:10px;border:3px solid transparent;font-family:'Bangers',cursive;font-size:1.05em;cursor:pointer;transition:all .2s;letter-spacing:1px}
+  .s-btn:hover{transform:scale(1.05)}
+  .s-btn.legit{background:#d5f5e3;border-color:#27ae60;color:#1e8449}
+  .s-btn.harking{background:#fadbd8;border-color:#e74c3c;color:#922B21}
+  .s-btn.disabled{opacity:.5;pointer-events:none}
+  .s-btn.selected{box-shadow:0 0 0 4px #f5c518}
+
+  .s-feedback{margin-top:10px;padding:10px 14px;border-radius:8px;display:none;font-size:.95em;line-height:1.4}
+  .s-feedback.show{display:block}
+  .s-feedback.ok{background:#0e2a3f;border:1px solid #27ae60;color:#d4e6f1}
+  .s-feedback.nok{background:#3b1515;border:1px solid #e74c3c;color:#fadbd8}
+
+  .score-bar{display:flex;justify-content:space-between;align-items:center;background:#162230;border:2px solid #1B4F72;border-radius:10px;padding:10px 20px;margin-bottom:18px}
+  .score-bar .st{font-family:'Bangers',cursive;color:#f5c518;font-size:1.15em;letter-spacing:1px}
+
+  .rune-bar{height:5px;background:linear-gradient(90deg,#1B4F72,#f5c518,#922B21,#4A235A,#1B4F72);border-radius:3px;margin:20px 0}
+  .footer{text-align:center;margin-top:20px;color:#556;font-size:.88em}
+  .footer .gold{color:#f5c518;font-family:'Permanent Marker',cursive}
+
+  .muninn-box{background:linear-gradient(135deg,#2d1b4e,#1a1035);border:2px solid #9b59b6;border-left:6px solid #9b59b6;border-radius:10px;padding:14px 18px;margin:0 auto 14px;max-width:860px}
+  .muninn-box .ml{font-family:'Bangers',cursive;color:#bb8fce;font-size:1.05em;margin-bottom:4px}
+  .muninn-box p{color:#d7bde2;font-size:1em;line-height:1.45}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>QUIZ: O CICLO DA PESQUISA</h1>
+  <div class="sub">Widget Interativo — Capítulo 1: Da Teoria à Inferência (e os Atalhos de ThorMento)</div>
+</div>
+
+<div class="huginn-box">
+  <div class="lbl">🪶 HUGINN PROVOCA:</div>
+  <p>"ThorMento adora inverter a ordem: olha os dados, acha um padrão, inventa a teoria depois e finge que sempre soube. Isso é <span class="bold-p">HARKing</span> — profecia retroativa. Parte 1: ordene as etapas do ciclo. Parte 2: identifique quais cenários são legítimos e quais são armadilhas de ThorMento."</p>
+</div>
+
+<div class="container">
+
+  <!-- PART 1: ORDER THE CYCLE -->
+  <div class="section-title">PARTE 1: ORDENE O CICLO DA PESQUISA</div>
+
+  <div class="order-area" id="orderArea">
+    <ul class="order-list" id="orderList"></ul>
+    <button class="btn btn-check" id="btnCheck" onclick="checkOrder()">🛡️ VERIFICAR ORDEM</button>
+    <div class="order-feedback" id="orderFeedback"></div>
+  </div>
+
+  <div class="rune-bar"></div>
+
+  <!-- PART 2: HARKing DETECTION -->
+  <div class="section-title">PARTE 2: LEGÍTIMO OU HARKing?</div>
+  <div class="score-bar">
+    <span class="st" id="harkScore">0 / 0</span>
+    <button class="btn btn-reset" onclick="resetAll()">🔨 REINICIAR TUDO</button>
+  </div>
+
+  <div id="scenarioArea"></div>
+
+  <div class="rune-bar"></div>
+
+  <div class="muninn-box">
+    <div class="ml">🪶 MUNINN LEMBRA:</div>
+    <p><strong>O ciclo legítimo:</strong> Teoria → Hipóteses → Design → Coleta → Análise → Inferência. Cada etapa depende da anterior. Inverter qualquer par — especialmente inventar hipóteses após ver os dados — compromete toda a cadeia. Pesquisa exploratória é válida, mas deve ser declarada como tal, não disfarçada de confirmatória.</p>
+  </div>
+</div>
+
+<div class="footer"><span class="gold">O Grimório Estatístico de Odin Dinho</span> — Prof. Dr. Leonardo Vils — Cap. 1</div>
+
+<script>
+// ===== PART 1: ORDERING =====
+const correctOrder = [
+  { id: 'teoria', text: 'Teoria — argumento lógico que conecta conceitos', icon: '📚' },
+  { id: 'hipoteses', text: 'Hipóteses — afirmações testáveis e falsificáveis', icon: '🎯' },
+  { id: 'design', text: 'Design — como coletar dados para testar', icon: '📐' },
+  { id: 'coleta', text: 'Coleta de dados — amostra, instrumentos', icon: '📦' },
+  { id: 'analise', text: 'Análise — testes estatísticos vs. hipóteses', icon: '⚔️' },
+  { id: 'inferencia', text: 'Inferência — conclusão sobre a população', icon: '🏛️' },
+];
+
+let shuffledOrder = [];
+let dragItem = null;
+
+function initOrder() {
+  shuffledOrder = [...correctOrder].sort(() => Math.random() - .5);
+  // Make sure it's not already in correct order
+  while (shuffledOrder.every((s, i) => s.id === correctOrder[i].id)) {
+    shuffledOrder.sort(() => Math.random() - .5);
+  }
+  renderOrder();
+}
+
+function renderOrder() {
+  const list = document.getElementById('orderList');
+  list.innerHTML = '';
+  shuffledOrder.forEach((item, i) => {
+    const li = document.createElement('li');
+    li.className = 'order-item';
+    li.draggable = true;
+    li.dataset.index = i;
+    li.innerHTML = `<div class="order-num">${i + 1}</div><div class="order-icon">${item.icon}</div><div class="order-text">${item.text}</div>`;
+
+    li.addEventListener('dragstart', e => { dragItem = i; li.classList.add('dragging'); });
+    li.addEventListener('dragend', () => { li.classList.remove('dragging'); dragItem = null; document.querySelectorAll('.order-item').forEach(el => el.classList.remove('over')); });
+    li.addEventListener('dragover', e => { e.preventDefault(); li.classList.add('over'); });
+    li.addEventListener('dragleave', () => li.classList.remove('over'));
+    li.addEventListener('drop', e => {
+      e.preventDefault();
+      li.classList.remove('over');
+      const dropIndex = parseInt(li.dataset.index);
+      if (dragItem !== null && dragItem !== dropIndex) {
+        const moved = shuffledOrder.splice(dragItem, 1)[0];
+        shuffledOrder.splice(dropIndex, 0, moved);
+        renderOrder();
+      }
+    });
+
+    // Touch support
+    li.addEventListener('touchstart', e => { dragItem = i; li.classList.add('dragging'); }, { passive: true });
+    li.addEventListener('touchend', () => { li.classList.remove('dragging'); });
+
+    list.appendChild(li);
+  });
+}
+
+function checkOrder() {
+  const isCorrect = shuffledOrder.every((s, i) => s.id === correctOrder[i].id);
+  const fb = document.getElementById('orderFeedback');
+
+  if (isCorrect) {
+    fb.className = 'order-feedback correct';
+    fb.innerHTML = `<div class="fb-lbl">🛡️ ODIN DINHO APROVA!</div><p>Perfeito! Teoria → Hipóteses → Design → Coleta → Análise → Inferência. Esse é o ciclo sagrado da pesquisa quantitativa. Cada etapa alimenta a próxima. Quebrar essa sequência é abrir a porta para ThorMento.</p>`;
+  } else {
+    // Show which are wrong
+    const wrongs = shuffledOrder.map((s, i) => s.id !== correctOrder[i].id ? i : -1).filter(i => i >= 0);
+    fb.className = 'order-feedback wrong';
+    fb.innerHTML = `<div class="fb-lbl">🔨 THORMENTO RIU...</div><p>${wrongs.length} etapa(s) fora de lugar. A ordem correta começa com Teoria — o argumento lógico — e termina com Inferência — a conclusão projetada para a população. Tente de novo: arraste os itens para reordenar.</p>`;
+  }
+}
+
+// ===== PART 2: HARKing SCENARIOS =====
+const scenarios = [
+  { text: "Um pesquisador lê 50 artigos sobre liderança, formula a hipótese 'Liderança transformacional aumenta engajamento em 15%', define o design, coleta dados e testa.", answer: "legit",
+    explain: "Processo legítimo: hipótese nasceu da teoria (revisão de literatura) ANTES de ver os dados." },
+  { text: "Um mercador de Birka coleta dados de 200 transações, percebe que vendas aumentam na lua cheia, e escreve no relatório: 'Conforme nossa hipótese inicial, a lua cheia afeta vendas.'", answer: "harking",
+    explain: "HARKing clássico: a 'hipótese' surgiu dos dados, mas foi apresentada como se fosse prévia. Profecia retroativa." },
+  { text: "Uma pesquisadora roda regressão com 30 variáveis, encontra 3 significativas (p < 0,05), remove as outras 27 do artigo e apresenta apenas as 3 como se fossem as únicas testadas.", answer: "harking",
+    explain: "Isso é p-hacking + HARKing combinados. Com 30 variáveis e α = 0,05, espera-se ~1,5 falsos positivos por acaso. Esconder as 27 variáveis é fraude metodológica." },
+  { text: "Um Jarl quer saber se o treinamento de combate melhora a sobrevivência. Formula a hipótese, sorteia guerreiros para treino vs. controle, mede resultados após 6 meses e publica — incluindo o resultado não significativo.", answer: "legit",
+    explain: "Processo impecável: hipótese prévia, randomização, publicação mesmo com resultado nulo. Odin Dinho aprova." },
+  { text: "Um pesquisador exploratório declara: 'Este é um estudo exploratório sem hipóteses prévias. Buscamos identificar padrões para futura investigação confirmatória.'", answer: "legit",
+    explain: "Pesquisa exploratória é perfeitamente legítima — desde que seja DECLARADA como tal. O problema do HARKing é fingir que exploração era confirmação." },
+  { text: "Um aluno roda 15 testes diferentes nos mesmos dados, encontra um com p = 0,04, e reporta apenas esse teste como se fosse o único planejado.", answer: "harking",
+    explain: "P-hacking: com 15 testes e α = 0,05, a chance de pelo menos um falso positivo é ~54%. Reportar só o 'vencedor' é desonestidade metodológica." },
+  { text: "Uma equipe pré-registra hipóteses e plano de análise no OSF antes de coletar dados. Os resultados não confirmam a hipótese principal. Publicam mesmo assim.", answer: "legit",
+    explain: "Ouro puro: pré-registro + publicação de resultado nulo. Isso é ciência séria e corajosa. ThorMento odeia isso." },
+  { text: "Um ferreiro testa 5 ligas de aço, descobre que a liga C é a melhor, e reescreve a introdução do relatório para dizer que 'teoricamente, liga C deveria ser superior'.", answer: "harking",
+    explain: "Reescrever a introdução para encaixar os resultados é a essência do HARKing. A 'teoria' foi fabricada para confirmar o que já se sabia." },
+];
+
+let harkShuffled = [], harkScore = 0, harkAnswered = 0;
+
+function initScenarios() {
+  harkShuffled = [...scenarios].sort(() => Math.random() - .5);
+  harkScore = 0; harkAnswered = 0;
+  renderScenarios();
+  updateHarkScore();
+}
+
+function renderScenarios() {
+  const area = document.getElementById('scenarioArea');
+  area.innerHTML = '';
+  harkShuffled.forEach((s, i) => {
+    area.innerHTML += `
+      <div class="scenario-card" id="sc-${i}">
+        <div class="s-num">${i + 1}</div>
+        <div class="s-text">${s.text}</div>
+        <div class="scenario-btns">
+          <button class="s-btn legit" onclick="answerScenario(${i},'legit')">✅ LEGÍTIMO</button>
+          <button class="s-btn harking" onclick="answerScenario(${i},'harking')">🔨 HARKing!</button>
+        </div>
+        <div class="s-feedback" id="sfb-${i}"></div>
+      </div>
+    `;
+  });
+}
+
+function answerScenario(idx, answer) {
+  const s = harkShuffled[idx];
+  const fb = document.getElementById('sfb-' + idx);
+  const btns = document.querySelectorAll(`#sc-${idx} .s-btn`);
+  btns.forEach(b => b.classList.add('disabled'));
+
+  const correct = answer === s.answer;
+  if (correct) harkScore++;
+  harkAnswered++;
+  updateHarkScore();
+
+  fb.className = `s-feedback show ${correct ? 'ok' : 'nok'}`;
+  fb.innerHTML = correct
+    ? `<strong>🛡️ Correto!</strong> ${s.explain}`
+    : `<strong>🔨 Errou!</strong> A resposta era <strong>${s.answer === 'legit' ? 'Legítimo' : 'HARKing'}</strong>. ${s.explain}`;
+
+  // Highlight selected
+  btns.forEach(b => { if(b.textContent.toLowerCase().includes(answer === 'legit' ? 'legítimo' : 'harking')) b.classList.add('selected'); });
+}
+
+function updateHarkScore() {
+  document.getElementById('harkScore').textContent = `${harkScore} / ${harkAnswered}`;
+}
+
+function resetAll() {
+  document.getElementById('orderFeedback').className = 'order-feedback';
+  document.getElementById('orderFeedback').innerHTML = '';
+  initOrder();
+  initScenarios();
+}
+
+// Init
+initOrder();
+initScenarios();
+</script>
+
+</body>
+</html>

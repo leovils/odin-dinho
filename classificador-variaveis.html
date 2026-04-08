@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Classificador de Variáveis — Cap 1 | Odin Dinho</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Patrick+Hand&family=Permanent+Marker&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:linear-gradient(180deg,#0d1117,#1a1a2e 40%,#16213e);font-family:'Patrick Hand',cursive;color:#ddd;min-height:100vh;padding:20px}
+  .header{text-align:center;margin-bottom:18px}
+  .header h1{font-family:'Permanent Marker',cursive;color:#f5c518;font-size:2.1em;text-shadow:3px 3px 0 #922B21,5px 5px 8px rgba(0,0,0,.6)}
+  .header .sub{color:#8899aa;font-size:1.05em;margin-top:4px}
+  .huginn-box{background:linear-gradient(135deg,#2d1b4e,#1a1035);border:2px solid #7d3c98;border-left:6px solid #7d3c98;border-radius:10px;padding:14px 18px;margin:0 auto 22px;max-width:880px}
+  .huginn-box .lbl{font-family:'Bangers',cursive;color:#bb8fce;font-size:1.05em;margin-bottom:4px}
+  .huginn-box p{color:#d7bde2;font-size:1em;line-height:1.45}
+  .bold-p{color:#e8daef;font-weight:bold}
+  .container{max-width:880px;margin:0 auto}
+
+  /* Score bar */
+  .score-bar{display:flex;justify-content:space-between;align-items:center;background:#162230;border:2px solid #1B4F72;border-radius:10px;padding:10px 20px;margin-bottom:18px}
+  .score-bar .score-text{font-family:'Bangers',cursive;color:#f5c518;font-size:1.2em;letter-spacing:1px}
+  .score-bar .progress{flex:1;margin:0 16px;height:12px;background:#0d1117;border-radius:6px;overflow:hidden}
+  .score-bar .progress-fill{height:100%;background:linear-gradient(90deg,#27ae60,#f5c518);border-radius:6px;transition:width .4s ease}
+  .btn{font-family:'Bangers',cursive;font-size:1.05em;padding:8px 20px;border:none;border-radius:8px;cursor:pointer;letter-spacing:1px;transition:transform .1s}
+  .btn:hover{transform:scale(1.04)}
+  .btn-reset{background:#555;color:#ddd}
+  .btn-next{background:linear-gradient(135deg,#1B4F72,#2980b9);color:#f5c518}
+
+  /* Card */
+  .card{background:linear-gradient(145deg,#fdf6e3,#f5f0dc);border:4px solid #2c2c2c;border-radius:14px;padding:24px;margin-bottom:18px;min-height:180px;text-align:center;position:relative;box-shadow:5px 5px 0 rgba(0,0,0,.4)}
+  .card .q-num{position:absolute;top:10px;left:14px;font-family:'Bangers',cursive;font-size:1.5em;color:#922B21;opacity:.35}
+  .card .variable-name{font-family:'Permanent Marker',cursive;color:#1B4F72;font-size:1.6em;margin-bottom:6px}
+  .card .variable-desc{color:#444;font-size:1.05em;margin-bottom:18px;line-height:1.4}
+
+  /* Buttons grid */
+  .classify-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-width:500px;margin:0 auto}
+  .classify-btn{padding:12px 10px;border-radius:10px;border:3px solid transparent;font-family:'Bangers',cursive;font-size:1.05em;letter-spacing:1px;cursor:pointer;transition:all .2s;text-align:center}
+  .classify-btn:hover{transform:scale(1.05);box-shadow:0 3px 10px rgba(0,0,0,.2)}
+  .classify-btn.nominal{background:#f9e79f;border-color:#d4ac0d;color:#7d6608}
+  .classify-btn.ordinal{background:#fadbd8;border-color:#e74c3c;color:#922B21}
+  .classify-btn.intervalar{background:#d4e6f1;border-color:#2980b9;color:#1B4F72}
+  .classify-btn.razao{background:#d5f5e3;border-color:#27ae60;color:#1e8449}
+
+  .nature-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-width:340px;margin:12px auto 0}
+  .nature-btn{padding:10px;border-radius:10px;border:3px solid transparent;font-family:'Bangers',cursive;font-size:1.05em;cursor:pointer;transition:all .2s}
+  .nature-btn:hover{transform:scale(1.05)}
+  .nature-btn.discreta{background:#e8daef;border-color:#7d3c98;color:#4A235A}
+  .nature-btn.continua{background:#fdebd0;border-color:#e67e22;color:#935116}
+
+  /* Feedback */
+  .feedback{margin-top:16px;padding:14px 18px;border-radius:10px;display:none;text-align:left;font-size:1em;line-height:1.45}
+  .feedback.correct{background:linear-gradient(135deg,#0e2a3f,#0a1f30);border:2px solid #27ae60;border-left:6px solid #27ae60}
+  .feedback.correct .fb-label{color:#27ae60;font-family:'Bangers',cursive;font-size:1.05em}
+  .feedback.correct p{color:#d4e6f1}
+  .feedback.wrong{background:linear-gradient(135deg,#3b1515,#2a0e0e);border:2px solid #e74c3c;border-left:6px solid #e74c3c}
+  .feedback.wrong .fb-label{color:#e74c3c;font-family:'Bangers',cursive;font-size:1.05em}
+  .feedback.wrong p{color:#fadbd8}
+
+  .disabled{opacity:.5;pointer-events:none}
+  .selected{box-shadow:0 0 0 4px #f5c518 !important;transform:scale(1.05)}
+
+  /* Final */
+  .final-box{background:linear-gradient(145deg,#1c2a3a,#162230);border:2px solid #f5c518;border-radius:14px;padding:24px;text-align:center;display:none}
+  .final-box h2{font-family:'Permanent Marker',cursive;color:#f5c518;font-size:1.8em;margin-bottom:8px}
+  .final-box .final-score{font-family:'Bangers',cursive;color:#27ae60;font-size:2.5em}
+  .final-box p{color:#aab;font-size:1.05em;margin-top:8px}
+
+  .rune-bar{height:5px;background:linear-gradient(90deg,#1B4F72,#f5c518,#922B21,#4A235A,#1B4F72);border-radius:3px;margin:20px 0}
+  .footer{text-align:center;margin-top:20px;color:#556;font-size:.88em}
+  .footer .gold{color:#f5c518;font-family:'Permanent Marker',cursive}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>CLASSIFICADOR DE VARIÁVEIS</h1>
+  <div class="sub">Widget Interativo — Capítulo 1: Pesquisa Quantitativa em Administração</div>
+</div>
+
+<div class="huginn-box">
+  <div class="lbl">🪶 HUGINN PROVOCA:</div>
+  <p>"ThorMento acha que variável é variável. 'Joga tudo no software e roda!' Prove que você é diferente. Classifique cada variável na <span class="bold-p">escala correta</span> (Nominal, Ordinal, Intervalar, Razão) e na <span class="bold-p">natureza correta</span> (Discreta ou Contínua). Errar aqui é usar termômetro para pesar porco."</p>
+</div>
+
+<div class="container">
+  <div class="score-bar">
+    <span class="score-text" id="scoreText">0 / 0</span>
+    <div class="progress"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <button class="btn btn-reset" onclick="resetQuiz()">🔨 REINICIAR</button>
+  </div>
+
+  <div id="cardArea"></div>
+
+  <div style="text-align:center;margin-top:14px">
+    <button class="btn btn-next" id="btnNext" onclick="nextQuestion()" style="display:none">PRÓXIMA ⚔️</button>
+  </div>
+
+  <div class="final-box" id="finalBox">
+    <h2>RESULTADO FINAL</h2>
+    <div class="final-score" id="finalScore"></div>
+    <p id="finalMsg"></p>
+    <div style="margin-top:16px"><button class="btn btn-reset" onclick="resetQuiz()">🔨 JOGAR DE NOVO</button></div>
+  </div>
+</div>
+
+<div class="rune-bar"></div>
+<div class="footer"><span class="gold">O Grimório Estatístico de Odin Dinho</span> — Prof. Dr. Leonardo Vils — Cap. 1</div>
+
+<script>
+const questions = [
+  { name: "Tipo de tropa", desc: "Arqueiros, lanceiros ou cavalaria num exército viking.", scale: "nominal", nature: "discreta",
+    explain: "São rótulos sem ordem — você não pode dizer que 'cavalaria > lanceiros' numa escala numérica. E são categorias contáveis, não medidas." },
+  { name: "Temperatura do forno da forja", desc: "Medida em graus Celsius no forno onde Odin Dinho assa o pão rúnico.", scale: "intervalar", nature: "continua",
+    explain: "Distâncias iguais entre pontos (200°C→300°C = 300°C→400°C), mas 0°C não significa ausência de calor. E a temperatura aceita valores infinitos entre dois pontos." },
+  { name: "Número de guerreiros no regimento", desc: "Contagem total de combatentes numa expedição a Vinland.", scale: "razao", nature: "discreta",
+    explain: "Zero significa zero guerreiros (zero absoluto → razão). E não existe 2,7 guerreiros — você conta, não mede." },
+  { name: "Ranking de qualidade de espada", desc: "Classificação: ruim, boa, excelente — dada pelo mestre ferreiro.", scale: "ordinal", nature: "discreta",
+    explain: "Tem ordem (ruim < boa < excelente), mas a 'distância' entre ruim e boa pode não ser a mesma que entre boa e excelente. São categorias ordenadas que você conta." },
+  { name: "Peso do carregamento do longship", desc: "Massa total da carga em quilos, medida na balança do porto de Birka.", scale: "razao", nature: "continua",
+    explain: "Zero quilos = nada (zero absoluto → razão). E o peso aceita qualquer valor entre dois pontos: 150,37 kg é perfeitamente válido." },
+  { name: "Região de origem do mercador", desc: "Asgard, Midgard, Jotunheim, Alfheim — de onde veio o comerciante.", scale: "nominal", nature: "discreta",
+    explain: "São rótulos sem qualquer ordem inerente. Asgard não é 'maior' que Midgard numa escala. Categorias que se contam." },
+  { name: "Satisfação com o Jarl (Likert 1-7)", desc: "'Numa escala de 1 a 7, o quanto você concorda que o Jarl é um bom líder?'", scale: "ordinal", nature: "discreta",
+    explain: "O debate é eterno, mas tecnicamente é ordinal — a distância psicológica entre 3 e 4 não é necessariamente igual à entre 6 e 7. Na prática, muitos tratam como intervalar, mas é uma DECISÃO que precisa ser justificada." },
+  { name: "Tempo de travessia até Vinland", desc: "Duração da viagem em dias, horas e minutos, registrada pelo navegador.", scale: "razao", nature: "continua",
+    explain: "Zero tempo = não viajou (zero absoluto → razão). E o tempo é contínuo: 14 dias, 3 horas, 27 minutos e 4,5 segundos é perfeitamente mensurável." },
+  { name: "Quantidade de aldeias sob tributo", desc: "Número de aldeias que pagam impostos ao Jarl do clã.", scale: "razao", nature: "discreta",
+    explain: "Zero aldeias = nenhuma (zero absoluto → razão). E não existe 3,5 aldeias — são unidades inteiras que você conta." },
+  { name: "Nível hierárquico no clã", desc: "Thrall (escravo), Karl (homem livre), Jarl (nobre) — a posição social do viking.", scale: "ordinal", nature: "discreta",
+    explain: "Tem ordem clara (Thrall < Karl < Jarl), mas a 'distância' entre os níveis não é quantificável nem igual. São categorias ordenadas." },
+];
+
+let current = 0, score = 0, scaleAnswer = null, natureAnswer = null, answered = false;
+
+function shuffle(arr) { for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr }
+
+function init() {
+  shuffle(questions);
+  current = 0; score = 0; scaleAnswer = null; natureAnswer = null; answered = false;
+  document.getElementById('finalBox').style.display = 'none';
+  document.getElementById('btnNext').style.display = 'none';
+  updateScore();
+  renderCard();
+}
+
+function updateScore() {
+  document.getElementById('scoreText').textContent = `${score} / ${current}`;
+  document.getElementById('progressFill').style.width = `${(current / questions.length) * 100}%`;
+}
+
+function renderCard() {
+  if (current >= questions.length) { showFinal(); return; }
+  const q = questions[current];
+  scaleAnswer = null; natureAnswer = null; answered = false;
+  document.getElementById('btnNext').style.display = 'none';
+
+  document.getElementById('cardArea').innerHTML = `
+    <div class="card">
+      <div class="q-num">${current + 1}</div>
+      <div class="variable-name">${q.name}</div>
+      <div class="variable-desc">${q.desc}</div>
+      <div style="font-family:'Bangers',cursive;color:#1B4F72;font-size:.95em;margin-bottom:6px;letter-spacing:1px">ESCALA DE MEDIDA:</div>
+      <div class="classify-grid" id="scaleGrid">
+        <button class="classify-btn nominal" onclick="pickScale('nominal',this)">NOMINAL</button>
+        <button class="classify-btn ordinal" onclick="pickScale('ordinal',this)">ORDINAL</button>
+        <button class="classify-btn intervalar" onclick="pickScale('intervalar',this)">INTERVALAR</button>
+        <button class="classify-btn razao" onclick="pickScale('razao',this)">RAZÃO</button>
+      </div>
+      <div style="font-family:'Bangers',cursive;color:#4A235A;font-size:.95em;margin:14px 0 6px;letter-spacing:1px">NATUREZA:</div>
+      <div class="nature-grid" id="natureGrid">
+        <button class="nature-btn discreta" onclick="pickNature('discreta',this)">DISCRETA</button>
+        <button class="nature-btn continua" onclick="pickNature('continua',this)">CONTÍNUA</button>
+      </div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+  `;
+}
+
+function pickScale(val, btn) {
+  if (answered) return;
+  document.querySelectorAll('#scaleGrid .classify-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  scaleAnswer = val;
+  checkBoth();
+}
+
+function pickNature(val, btn) {
+  if (answered) return;
+  document.querySelectorAll('#natureGrid .nature-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  natureAnswer = val;
+  checkBoth();
+}
+
+function checkBoth() {
+  if (!scaleAnswer || !natureAnswer) return;
+  answered = true;
+  const q = questions[current];
+  const scaleOk = scaleAnswer === q.scale;
+  const natureOk = natureAnswer === q.nature;
+  const bothOk = scaleOk && natureOk;
+
+  if (bothOk) score++;
+  current++;
+  updateScore();
+
+  const fb = document.getElementById('feedback');
+  fb.style.display = 'block';
+
+  if (bothOk) {
+    fb.className = 'feedback correct';
+    fb.innerHTML = `<div class="fb-label">🛡️ ODIN DINHO APROVA!</div><p>${q.explain}</p>`;
+  } else {
+    let miss = [];
+    if (!scaleOk) miss.push(`Escala: você disse <strong>${scaleAnswer}</strong>, mas é <strong>${q.scale}</strong>`);
+    if (!natureOk) miss.push(`Natureza: você disse <strong>${natureAnswer}</strong>, mas é <strong>${q.nature}</strong>`);
+    fb.className = 'feedback wrong';
+    fb.innerHTML = `<div class="fb-label">🔨 THORMENTO SORRIU...</div><p>${miss.join('. ')}. ${q.explain}</p>`;
+  }
+
+  document.querySelectorAll('#scaleGrid .classify-btn, #natureGrid .nature-btn').forEach(b => b.classList.add('disabled'));
+  document.getElementById('btnNext').style.display = 'inline-block';
+}
+
+function nextQuestion() { renderCard(); }
+
+function showFinal() {
+  document.getElementById('cardArea').innerHTML = '';
+  document.getElementById('btnNext').style.display = 'none';
+  const pct = Math.round(score / questions.length * 100);
+  const box = document.getElementById('finalBox');
+  box.style.display = 'block';
+  document.getElementById('finalScore').textContent = `${score} / ${questions.length} (${pct}%)`;
+
+  let msg;
+  if (pct === 100) msg = "Perfeito! Odin Dinho está orgulhoso. Você domina a taxonomia de variáveis como um mestre ferreiro domina a têmpera do aço.";
+  else if (pct >= 70) msg = "Bom trabalho! Alguns tropeços, mas nada que um retorno ao Capítulo 1 não resolva. ThorMento perdeu essa rodada.";
+  else if (pct >= 40) msg = "ThorMento está rindo. Volte à seção 1.3 — Tipos de Variáveis — e releia com calma. NOIR + Discreta/Contínua são a base de tudo.";
+  else msg = "O martelo de ThorMento esmagou sua classificação. Sem desespero: releia a seção 1.3, preste atenção nos exemplos, e tente de novo.";
+  document.getElementById('finalMsg').textContent = msg;
+}
+
+function resetQuiz() { init(); }
+init();
+</script>
+
+</body>
+</html>
